@@ -9,21 +9,43 @@ export default function GpsView() {
   const { language, langName } = useLanguage();
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [inputVal, setInputVal] = useState("411014");
+  const [inputVal, setInputVal] = useState("");
   const [data, setData] = useState<any>(null);
 
-  const performSearch = async () => {
-    if (!inputVal.trim()) return;
+  const performSearch = async (queryToSearch?: string | React.MouseEvent) => {
+    const q = typeof queryToSearch === "string" ? queryToSearch : inputVal;
+    if (!q.trim()) return;
     setLoading(true);
     setSearched(false);
     try {
-      const liveData = await getLiveGpsData(inputVal, langName);
+      const liveData = await getLiveGpsData(q, langName);
       setData(liveData);
       setSearched(true);
     } catch (error) {
       console.error("GPS Error:", error);
     }
     setLoading(false);
+  };
+
+  const locateMe = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const query = `Coordinates: Latitude ${lat}, Longitude ${lng}`;
+        setInputVal(query);
+        performSearch(query);
+      },
+      () => {
+        setLoading(false);
+        alert("Unable to retrieve your location. Please ensure location permissions are granted.");
+      }
+    );
   };
 
   return (
@@ -44,14 +66,22 @@ export default function GpsView() {
           type="text" 
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
-          placeholder="Enter your PIN code (e.g., 411014 or 400001)" 
+          placeholder="Enter PIN, City or tap Location icon" 
           className="flex-1 bg-transparent px-4 py-3 outline-none text-slate-800 font-medium"
+          onKeyDown={(e) => e.key === 'Enter' && performSearch()}
         />
         <button 
           onClick={performSearch}
-          className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold text-sm hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold text-sm hover:bg-blue-700 transition-colors shadow-sm"
         >
-          {loading ? "Scanning..." : "Locate"}
+          {loading ? "Scanning" : "Search"}
+        </button>
+        <button 
+          onClick={locateMe}
+          className="ml-2 p-3 bg-white text-blue-600 rounded-full font-bold border border-blue-100 hover:bg-blue-50 transition-colors shadow-sm flex items-center justify-center"
+          title="Use Current Location"
+        >
+          <Navigation className="w-5 h-5" />
         </button>
       </div>
 

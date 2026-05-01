@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { LegalTerm } from "@/src/components/LegalTerm";
 import { BookOpen, Scale, FileText, CheckCircle2, Award, Star, ShieldAlert } from "lucide-react";
 import { motion } from "motion/react";
@@ -194,9 +195,11 @@ export default function LearnView() {
             <BookOpen className="w-10 h-10 mx-auto mb-4 text-orange-400" />
             <h3 className="font-bold text-xl mb-2">Story Mode</h3>
             <p className="text-sm text-slate-300 mb-6">Turn boring law into cinematic stories. Understand exactly why a law exists.</p>
-            <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-bold text-sm transition-colors shadow-sm backdrop-blur-sm">
-              Try "Why Secret Ballot?"
-            </button>
+            <Link to="/ask?q=story" className="w-full block">
+              <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-bold text-sm transition-colors shadow-sm backdrop-blur-sm">
+                Try "Why Secret Ballot?"
+              </button>
+            </Link>
           </div>
         </div>
       </div>

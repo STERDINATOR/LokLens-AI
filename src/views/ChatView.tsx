@@ -36,6 +36,8 @@ export default function ChatView() {
         handleSend("I am 18, living in Maharashtra, first time voter. Tell me everything I need to do in a checklist form.");
       } else if (q === "myth") {
         handleSend("Can you bust some common election myths for me? Like if I don't vote, does the government use my vote?");
+      } else if (q === "story") {
+        handleSend("Tell me the cinematic story of 'Why Secret Ballot?' and explain the law behind it.");
       }
     }
   }, [search]);

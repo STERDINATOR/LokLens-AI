@@ -112,9 +112,14 @@ Absolutely no other text. Translate the field values (not keys) into ${language}
     }
 }
 
-export async function getLiveNews(language: string = "English"): Promise<any> {
+export async function getLiveNews(language: string = "English", page: number = 1): Promise<any> {
     try {
-      const prompt = `Use Google Search to find the 5 latest news headlines about Indian Elections, Election Commission of India, or Indian politics.
+      let pageInstruction = "";
+      if (page > 1) {
+        pageInstruction = `\nThis is page ${page} of the news feed. Please find 5 DIFFERENT news headlines that are slightly older or from different sources than the absolute latest results to simulate pagination.`;
+      }
+      
+      const prompt = `Use Google Search to find 5 news headlines about Indian Elections, Election Commission of India, or Indian politics.${pageInstruction}
 Respond ONLY with a JSON array of objects exactly like this:
 [
   {

@@ -1,12 +1,31 @@
-import { Link } from "react-router-dom";
-import { Vote, MapPin, Scale, Search, Flag, Book, MessageSquare, Bell, Clock, AlertTriangle, Newspaper } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Vote, MapPin, Scale, Search, Flag, Book, MessageSquare, Bell, Clock, AlertTriangle, Newspaper, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
 import { LegalTerm } from "@/src/components/LegalTerm";
 import { useLanguage } from "@/src/contexts/LanguageContext";
 import { t } from "@/src/lib/translations";
+import { getLiveNews } from "@/src/services/geminiService";
 
 export default function DashboardView() {
-  const { language } = useLanguage();
+  const { language, langName } = useLanguage();
+  const navigate = useNavigate();
+  const [news, setNews] = useState<any[]>([]);
+  const [loadingNews, setLoadingNews] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      setLoadingNews(true);
+      try {
+        const data = await getLiveNews(langName);
+        setNews(data);
+      } catch (e) {
+        console.error("Failed to fetch news on dashboard", e);
+      }
+      setLoadingNews(false);
+    };
+    fetchNews();
+  }, [langName]);
 
   const OTB_FEATURES = [
     { icon: Newspaper, title: t("nav.news", language), desc: "Live AI curated feed", color: "text-blue-600 bg-blue-100 ring-blue-200", route: "/news" },
@@ -94,6 +113,52 @@ export default function DashboardView() {
           Start Checklist
         </Link>
       </div>
+
+      {/* Latest News */}
+      <div className="mt-8 mb-4 flex justify-between items-end">
+        <div>
+          <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">
+            <Newspaper className="w-5 h-5 text-blue-600" /> Latest News
+          </h3>
+          <p className="text-sm text-slate-500">Live AI Curated Updates</p>
+        </div>
+        <Link to="/news" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+          View All <ChevronRight className="w-4 h-4" />
+        </Link>
+      </div>
+
+      {loadingNews ? (
+        <div className="flex overflow-x-auto gap-4 pb-4 snap-x">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="min-w-[280px] sm:min-w-[320px] glass p-4 rounded-2xl animate-pulse snap-center shrink-0">
+              <div className="w-16 h-3 bg-slate-200 rounded mb-2"></div>
+              <div className="w-3/4 h-5 bg-slate-200 rounded mb-2"></div>
+              <div className="w-full h-10 bg-slate-200 rounded mb-3"></div>
+              <div className="w-1/4 h-3 bg-slate-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex overflow-x-auto gap-4 pb-4 snap-x no-scrollbar">
+          {news.slice(0, 5).map((item, idx) => (
+            <div 
+              key={idx} 
+              onClick={() => navigate('/news')}
+              className="min-w-[280px] sm:min-w-[320px] glass p-4 rounded-2xl border border-white hover:border-blue-300 transition-all shadow-sm hover:shadow-md cursor-pointer snap-center shrink-0 flex flex-col group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{item.source}</span>
+                <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                  <Clock className="w-3 h-3" />
+                  <span>{item.time}</span>
+                </div>
+              </div>
+              <h4 className="font-bold text-sm text-slate-900 mb-1 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">{item.title}</h4>
+              <p className="text-xs text-slate-600 line-clamp-2 mt-auto">{item.summary}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
     </div>
   );
