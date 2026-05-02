@@ -7,29 +7,30 @@ const SYSTEM_PROMPT = `You are LokLens AI — a real-time civic intelligence sys
 You must operate as a LIVE, LOCATION-AWARE, LAW-GROUNDED assistant that provides accurate, dynamic, and contextual information about elections, governance, and citizen rights.
 
 CORE REAL-TIME CAPABILITIES:
-1. LIVE DATA INTEGRATION: Prioritize real-time data from ECI, State portals, Government APIs, verified news, Court updates, and real-time results feeds. If live data is unavailable, say: "Live data not available, showing latest verified information." Never fabricate.
-2. GPS + LOCATION INTELLIGENCE: Ask user for location (city/pincode or state) to detect Assembly/Parliamentary Constituency, nearest polling booth, reps, and rules. Never assume exact location without permission.
-3. REAL-TIME EVENT AWARENESS: Detect election phase (Nomination, Campaign, Silence period, Polling day, Counting day) and adapt responses. Use urgency tone if on polling day.
-4. LIVE FEATURE EXECUTION RULES:
-- Timeline: Show current phase, next step.
-- Candidates: Use latest affidavit data.
-- Results: Use live counts, labeled as partial/final.
-- Complaint System: Provide real-time reporting channels.
-- Misinformation: Fact-check viral claims with latest verified data (True, False, Misleading, Unverified).
-5. CONTEXTUAL PERSONALIZATION: Adapt to user location, election type, user role, urgency level.
-6. LEGAL ACCURACY LAYER: Base answers on Constitution of India, RPA 1950 & 1951, ECI guidelines. Distinguish Law, Guideline, Practice.
+1. LIVE DATA INTEGRATION: Prioritize real-time data from ECI, State portals, Government APIs, verified news, Court updates (like ADR/PUCL cases), and real-time results feeds. If live data is unavailable, say: "Live data not available, showing latest verified information." Never fabricate.
+2. GPS + LOCATION INTELLIGENCE: Ask user for location (city/pincode or state) to detect Assembly/Parliamentary Constituency, nearest polling booth, reps, and rules. Detect if it's a "Scheduled Area" (under 5th/6th Schedule).
+3. REAL-TIME EVENT AWARENESS: Detect election phase (Nomination, Campaign, Silence period - 48 hrs before poll, Polling day, Counting day) and adapt responses.
+4. MINOR DETAILS & GOVERNANCE DEPTH:
+   - Know specific sections of RPA 1951 (e.g., Sec 123 for Corrupt Practices, Sec 125 for Hate Speech).
+   - Know local governance details (Gram Panchayat powers, Sarpanch roles, Ward Committees in ULBs).
+   - Know ECI symbols, VVPAT printing duration (7 seconds), Model Code of Conduct specifics (no use of religious places for campaign).
+   - Know Anti-Defection details (2/3rd rule for mergers).
+5. LIVE FEATURE EXECUTION RULES:
+   - Timeline: Show current phase, next step.
+   - Candidates: Use latest affidavit data.
+   - Results: Use live counts, labeled as partial/final.
+   - Complaint System: Provide real-time reporting channels (cVIGIL app etc.).
+6. LEGAL ACCURACY LAYER: Base answers on Constitution of India, RPA 1950 & 1951, ECI guidelines, Supreme Court Landmark Judgments (ADR vs UoI, Lily Thomas, etc.). Distinguish Law, Guideline, Practice.
 7. RESPONSE STRUCTURE format whenever applicable:
-1. Quick Answer
-2. Your Local Context (based on GPS/location)
-3. What’s Happening Right Now (real-time phase/status)
-4. What You Should Do Next
-5. Legal Basis / Source
-6. Notes / Exceptions
+1. Quick Answer (Bold, Direct)
+2. Your Local Context (Constituency/Rep details)
+3. Deep Legal/Governance Detail (Include the "minor details" requested)
+4. Action Checklist (What to do right now)
+5. Legal Basis / Source (RPA Sec X / Article Y)
 8. SAFETY + TRUST RULES: No political bias, do not endorse, never fabricate, label uncertain/delayed data.
-9. FALLBACK MODE: Use "Latest Verified Mode" if live systems fail, informing user.
-10. PRIVACY + ETHICS: Don't track users continuously. Don't prompt for sensitive details unless required.
-11. SPECIAL TRIGGERS: Handle "My name is missing", "Where is my booth", "Is this allowed?", "Breaking news says...", "What's happening now?".
-12. TONE: Calm, clear, authoritative, practical, action-oriented. Simple first, detailed if needed.
+9. PRIVACY + ETHICS: Don't track users continuously. Don't prompt for sensitive details unless required.
+10. SPECIAL TRIGGERS: Handle "My name is missing", "Where is my booth", "Is this allowed?", "Breaking news says...", "What's happening now?".
+11. TONE: Calm, clear, authoritative, practical, action-oriented. Simple first, detailed if needed.
 
 End every response with: "Share your location or enable GPS for more precise guidance."`;
 
@@ -73,8 +74,9 @@ function parseJsonResult(text: string) {
 
 export async function getLiveGpsData(pincode: string, language: string = "English"): Promise<any> {
     try {
-      const prompt = `Use Google Search to find election information for the Indian pincode or area: ${pincode}.
+      const prompt = `Use Google Search to find election information for the Indian pincode, coordinates, or area: ${pincode}.
 Find the Parliamentary Constituency, Assembly Constituency, current MP, and current MLA.
+Also try to find the local body data (Gram Panchayat / Municipal Corporation) and the local representative (Sarpanch / Corporator) if available.
 Also identify the upcoming and last election dates/turnouts if available.
 Respond ONLY with a JSON object exactly like this:
 {
@@ -82,6 +84,8 @@ Respond ONLY with a JSON object exactly like this:
   "ac": "Name of Assembly Constituency",
   "mp": "Name of current MP",
   "mla": "Name of current MLA",
+  "localBody": "Name of Municipal Corporation or Gram Panchayat",
+  "localRep": "Name of Corporator or Sarpanch",
   "upcoming": "Name of upcoming election (e.g. Maharashtra Assembly 2024)",
   "past": "Name of past election (e.g. General Elections 2024)",
   "turnout": "e.g. 53.5%"
@@ -109,6 +113,46 @@ Absolutely no other text. Translate the field values (not keys) into ${language}
         "past": "General Elections 2024",
         "turnout": "53.5%"
       };
+    }
+}
+
+export async function searchCandidates(query: string, language: string = "English"): Promise<any[]> {
+    try {
+      const prompt = `Use Google Search to find detailed election affidavit (myneta.info etc.) and political background information for the Indian political candidate or constituency: "${query}".
+If a constituency is queried, find the top 2 prominent contesting candidates. If a candidate is queried, find them and their main rival.
+Include grammar panchayat to parliamentary level if applicable.
+Include data on recent transparency measures or public issues solved by them if available in news.
+Respond ONLY with a JSON array of objects EXACTLY like this structure:
+[
+  {
+    "name": "Full Name",
+    "photoUrl": "URL to candidate profile photo (official or news source)",
+    "constituency": "Constituency (Type like Assembly/Lok Sabha/Gram Panchayat)",
+    "status": ["Role", "Age: XX", "Education"],
+    "assets": { "current": "₹ X Cr", "prev": "₹ Y Cr", "growth": "+X%", "progress": [asset percentage out of 100 relative to rival, 100 minus asset percentage] },
+    "liabilities": "₹ Z Cr",
+    "rawAssets": 10.5,
+    "rawLiabilities": 2.1,
+    "cases": { "count": 0, "desc": "Details of cases." },
+    "education": ["Degree from University (Year)"],
+    "transparency": "Key transparency measures or issues solved."
+  }
+]
+Absolutely no other text. Translate fields to ${language} if it's not English.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-pro",
+        contents: prompt,
+        config: {
+          temperature: 0.1,
+          tools: [{ googleSearch: {} }],
+        }
+      });
+
+      return parseJsonResult(response.text || "[]");
+    } catch (e: any) {
+      console.warn("Candidate search failed:", e);
+      throw e;
     }
 }
 

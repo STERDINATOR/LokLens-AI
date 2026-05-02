@@ -85,56 +85,72 @@ export default function PanicView() {
 
   return (
     <div className="max-w-4xl mx-auto w-full">
-      <header className="mb-8 p-6 glass border border-red-200/50 rounded-3xl flex flex-col items-center text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-          <AlertTriangle className="w-8 h-8 text-red-600" />
+      <header className="mb-10 lg:mb-16">
+        <div className="bg-gradient-to-br from-rose-500 to-red-600 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-[0_20px_40px_rgb(225,29,72,0.2)] text-center flex flex-col items-center">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+             <AlertTriangle className="w-64 h-64 text-white transform rotate-12 -translate-y-16 translate-x-16" />
+          </div>
+          <div className="absolute top-0 left-0 p-8 opacity-10">
+             <AlertTriangle className="w-48 h-48 text-white transform -rotate-12 -translate-y-10 -translate-x-10" />
+          </div>
+          
+          <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-6 ring-8 ring-white/10 relative z-10">
+            <AlertTriangle className="w-12 h-12 text-white" />
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight mb-4 relative z-10 leading-tight">Polling Day<br />Panic Mode</h1>
+          <p className="text-red-100 font-bold text-lg md:text-xl max-w-2xl relative z-10 leading-relaxed uppercase tracking-widest">
+            If you are facing an emergency at the polling booth, select the issue below for immediate ECI-approved legal steps.
+          </p>
         </div>
-        <h1 className="text-3xl font-bold text-red-900 mb-2">Polling Day Panic Mode</h1>
-        <p className="text-red-700/80 max-w-lg">If you are facing an emergency at the polling booth, select the issue below for immediate ECI-approved legal steps.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {PANIC_MODULES.map((module, i) => {
           const Icon = module.icon;
           return (
             <Dialog.Root key={i}>
               <Dialog.Trigger asChild>
-                <div className={`p-6 rounded-3xl border border-white/60 glass transition-all cursor-pointer hover:shadow-lg hover:-translate-y-1 flex flex-col justify-between group`}>
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className={`p-3 rounded-2xl ${module.color.split(' ')[0]} ${module.color.split(' ')[1]} ring-1 ring-inset ${module.color.split(' ')[2]}`}>
-                      <Icon className="w-6 h-6" />
+                <div className={`p-8 rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-slate-200 transition-all cursor-pointer hover:shadow-xl hover:-translate-y-1.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 flex flex-col group h-full relative overflow-hidden`}>
+                  <div className={`absolute top-0 left-0 w-full h-1.5 ${module.color.includes('red') || module.color.includes('rose') ? 'bg-gradient-to-r from-rose-500 to-red-600' : module.color.includes('orange') || module.color.includes('amber') ? 'bg-gradient-to-r from-amber-400 to-orange-500' : module.color.includes('green') ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-blue-400 to-indigo-500'}`}></div>
+                  
+                  <div className="flex-1">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${module.color} shadow-sm group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}>
+                      <Icon className="w-8 h-8" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg text-slate-900 group-hover:text-blue-700 transition-colors">{module.title}</h3>
-                      <p className="text-slate-600 text-sm mt-1">{module.desc}</p>
+                      <h3 className="font-extrabold text-2xl text-slate-900 leading-tight mb-3 group-hover:text-slate-700 transition-colors">{module.title}</h3>
+                      <p className="text-slate-600 text-base font-medium leading-relaxed">{module.desc}</p>
                     </div>
                   </div>
-                  <button className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition-colors mt-2 shadow-sm border border-slate-200">
-                    {module.action}
-                  </button>
+                  <div className="w-full py-4 mt-8 bg-slate-50 border border-slate-200 group-hover:bg-slate-100 text-slate-700 font-extrabold rounded-2xl transition-colors shadow-sm text-center uppercase tracking-widest text-xs flex justify-center items-center gap-2">
+                    {module.action} <AlertTriangle className="w-3.5 h-3.5 opacity-50" />
+                  </div>
                 </div>
               </Dialog.Trigger>
               <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity" />
-                <Dialog.Content className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[90vw] max-w-lg glass border border-white/60 p-6 rounded-3xl shadow-2xl z-50 text-slate-800">
-                  <div className="flex justify-between items-start mb-6">
+                <Dialog.Overlay className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 transition-opacity" />
+                <Dialog.Content className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[90vw] max-w-lg bg-white/90 backdrop-blur-2xl border border-slate-200 p-8 rounded-[2.5rem] shadow-2xl z-50 text-slate-800">
+                  <div className="flex justify-between items-start mb-8">
                     <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-2xl ${module.color.split(' ')[0]} ${module.color.split(' ')[1]} ring-1 ring-inset ${module.color.split(' ')[2]}`}>
-                        <Icon className="w-6 h-6" />
+                      <div className={`p-4 rounded-2xl ${module.color.split(' ')[0]} ${module.color.split(' ')[1]} ring-1 ring-inset ${module.color.split(' ')[2]} shadow-sm`}>
+                        <Icon className="w-8 h-8" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold">{module.title}</h2>
-                        <p className="text-slate-500 text-sm font-medium">Step-by-step guidance</p>
+                        <Dialog.Title asChild>
+                          <h2 className="text-2xl font-extrabold text-slate-900">{module.title}</h2>
+                        </Dialog.Title>
+                        <p className="text-slate-500 text-xs tracking-widest uppercase font-bold mt-1">Step-by-step guidance</p>
                       </div>
                     </div>
-                    <Dialog.Close className="p-1.5 rounded-full hover:bg-white/50 transition-colors">
-                      <X className="w-5 h-5 text-slate-500" />
+                    <Dialog.Close className="p-2 rounded-full hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200">
+                      <X className="w-6 h-6 text-slate-500" />
                     </Dialog.Close>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {module.steps.map((step, idx) => (
-                      <div key={idx} className="bg-white/50 p-4 rounded-2xl border border-white/60 text-slate-700 font-medium leading-relaxed">
-                        {step}
+                      <div key={idx} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-slate-700 font-medium leading-relaxed shadow-sm flex gap-3 items-start">
+                        <span className="font-bold text-slate-900 shrink-0">{idx + 1}.</span>
+                        <span>{typeof step === 'string' ? step.substring(3) : step}</span>
                       </div>
                     ))}
                   </div>
@@ -145,15 +161,18 @@ export default function PanicView() {
         })}
       </div>
 
-      <div className="mt-8 bg-slate-900 text-white p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
-        <div>
-          <h3 className="font-bold text-lg flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-red-400" />
+      <div className="mt-12 bg-slate-900 text-white p-8 md:p-10 rounded-[3rem] flex flex-col md:flex-row items-center justify-between gap-8 shadow-[0_20px_40px_rgb(15,23,42,0.2)] border border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10 blur-xl">
+           <ShieldAlert className="w-64 h-64 text-red-500" />
+        </div>
+        <div className="relative z-10">
+          <h3 className="font-extrabold text-2xl flex items-center gap-3 mb-2">
+            <ShieldAlert className="w-8 h-8 text-red-500" />
             National Election Helpline
           </h3>
-          <p className="text-slate-300 text-sm mt-1">For immediate assistance, dial the universal voter helpline.</p>
+          <p className="text-slate-300 text-base font-medium">For immediate assistance, dial the universal voter helpline.</p>
         </div>
-        <a href="tel:1950" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xl rounded-xl transition-colors shrink-0 backdrop-blur-sm">
+        <a href="tel:1950" className="px-10 py-5 bg-white text-slate-900 hover:bg-slate-50 font-black text-3xl rounded-[2rem] transition-colors shrink-0 shadow-lg relative z-10 tracking-tight text-center w-full md:w-auto">
           Dial 1950
         </a>
       </div>
